@@ -2,19 +2,29 @@
     <Page>
         <ActionBar>
             <GridLayout width="100%" columns="auto, *">
-                <Label text="MENU" @tap="$refs.drawer.nativeView.showDrawer()" col="0"/>
-                <Label class="title" text="Welcome to NativeScript-Vue!"  col="1"/>
+                <Image src="~/assets/images/side_drawer.png" @tap="$refs.drawer.nativeView.showDrawer()" col="0"/>
+                <Image src="~/assets/images/logo.png"  class="logo" col="1"/>
             </GridLayout>
         </ActionBar>
 
         <RadSideDrawer ref="drawer">
             <StackLayout ~drawerContent backgroundColor="#ffffff">
-                <Label class="drawer-header" text="Drawer"/>
+                <Label class="drawer-header" text="GeoQuizz"/>
                 <Label class="drawer-item" @tap="page" text="Photos"/>
             </StackLayout>
 
             <GridLayout ~mainContent columns="*" rows="*">
-                <Camera></Camera>
+                <StackLayout class="form">
+                    <StackLayout class="input-field">
+                        <TextField class="input" hint="Pseudo" autocorrect="false"></TextField>
+                    </StackLayout>
+
+                    <StackLayout class="input-field">
+                        <TextField class="input" hint="Mot de passe" autocorrect="false"></TextField>
+                    </StackLayout>
+
+                    <Button text="Log In" class="btn btn-primary"></Button>
+                </StackLayout>
             </GridLayout>
         </RadSideDrawer>
     </Page>
@@ -41,8 +51,12 @@
 
 <style scoped>
     ActionBar {
-        background-color: #53ba82;
-        color: #ffffff;
+        background-color: #ffffff;
+        color: #222;
+    }
+
+    .logo {
+        width :75%;
     }
 
     .title {
@@ -60,7 +74,7 @@
     .drawer-header {
         padding: 50 16 16 16;
         margin-bottom: 16;
-        background-color: #53ba82;
+        background-color: #e2574c;
         color: #ffffff;
         font-size: 24;
     }
