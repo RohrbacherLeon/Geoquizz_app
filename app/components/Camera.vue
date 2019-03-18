@@ -1,7 +1,6 @@
 <template>
         <StackLayout>
-			<Button text="Take Picture" @tap="takePicture" />
-			<Button text="Choose Picture" @tap="selectPicture" />
+			<Button class="btn" text="Prendre une photo" @tap="takePicture" />
 			<WrapLayout>
 				<Image v-for="img in images" v-bind:key="img" :src="img.src" width="75" height="75" />
 			</WrapLayout>
@@ -24,30 +23,6 @@ export default {
 		}
 	},
 	methods:{
-		selectPicture() {
-
-			let context = imagepicker.create({
-				mode: 'multiple' 
-			});
-
-			context.authorize()
-			.then(function() {
-				return context.present();
-			})
-			.then(selection => {
-				selection.forEach(selected => {
-					
-					console.log(JSON.stringify(selected));
-
-					let img = new Image();
-					img.src = selected;
-					this.images.push(img);
-				});
-			}).catch(function (e) {
-				console.log('error in selectPicture', e);
-			});
-
-		},
 
 		getLocalisation(){
 

@@ -1,25 +1,21 @@
 <template>
-	<Page actionBarHidden="true">
-		<FlexboxLayout class="page">
-			<StackLayout class="form">
-				<Image class="logo" src="~/assets/images/logo.png" />
-
-				<StackLayout class="input-field" marginBottom="25">
-					<TextField class="input" hint="Pseudo"  autocorrect="false" autocapitalizationType="none" v-model="user.pseudo"
-					 returnKeyType="next" @returnPress="focusPassword" fontSize="18" />
-					<StackLayout class="hr-light" />
-				</StackLayout>
-
-				<StackLayout class="input-field" marginBottom="25">
-					<TextField ref="password" class="input" hint="Mot de passe" secure="true" v-model="user.password" :returnKeyType="isLoggingIn ? 'done' : 'next'"
-					 @returnPress="focusConfirmPassword" fontSize="18" />
-					<StackLayout class="hr-light" />
-				</StackLayout>
-
-				<Button text="Log In" @tap="submit" class="btn btn-primary m-t-20" />
+	<FlexboxLayout class="page">
+		<StackLayout class="form">
+			<StackLayout class="input-field" marginBottom="25">
+				<TextField class="input" hint="Pseudo"  autocorrect="false" autocapitalizationType="none" v-model="user.pseudo"
+					returnKeyType="next" @returnPress="focusPassword" fontSize="18" />
+				<StackLayout class="hr-light" />
 			</StackLayout>
-		</FlexboxLayout>
-	</Page>
+
+			<StackLayout class="input-field" marginBottom="25">
+				<TextField ref="password" class="input" hint="Mot de passe" secure="true" v-model="user.password" :returnKeyType="isLoggingIn ? 'done' : 'next'"
+					@returnPress="focusConfirmPassword" fontSize="18" />
+				<StackLayout class="hr-light" />
+			</StackLayout>
+
+			<Button text="Log In" @tap="submit" class="btn btn-primary m-t-20" />
+		</StackLayout>
+	</FlexboxLayout>
 </template>
 
 <script>
@@ -71,7 +67,7 @@ export default {
                     this.$navigateTo(HomePage);
                 })
                 .catch(() => {
-                    this.alert("Unfortunately we could not find your account.");
+                    this.alert("Impossible de vous authentifier.");
                 });
         },
 
