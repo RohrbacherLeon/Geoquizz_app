@@ -55,27 +55,36 @@ export default {
 	
 
 	methods:{
+		//Afficher / Cacher formulaire login
 		toggleShowLogin(){
 			this.show_series = false;
 			this.show_new_serie = false;
 			this.show_login = !this.show_login;
 		},
 
+		//Afficher / Cacher formulaire séries existantes
 		toggleShowSeries(){
 			this.show_login = false;
 			this.show_new_serie = false;
 			this.show_series = !this.show_series;
 		},
 
+		//Afficher / Cacher formulaire nouvelle serie
 		toggleShowNewSerie(){
 			this.show_login = false;
 			this.show_series = false;
 			this.show_new_serie = !this.show_new_serie;
 		},
 
+
+		//Envoi des images prisent dans App.vue
+		// Params : 
+		// uri : chemin de la route ou poster les images
 		sendHttpImages(uri){
-			this.$parent.$options.parent.images.forEach(image => {
-				// file path and url
+
+			//On parcours les images prisent dans le parent
+			this.$parent.$options.parent.images.forEach((image, index) => {
+				// chemin local du fichier image
 				var file = image.src._android;
 				// upload configuration
 				var bghttp = require("nativescript-background-http");
@@ -88,19 +97,26 @@ export default {
 					},
 					description: "Uploading "
 				};
-
+				// parametres d'envoi structurés
 				var params = [
 					{name:"file", filename: file, mimeType: 'image/jpeg'}
 				];
+				// task d'envoi selon config + params
 				var task = session.multipartUpload(params, request);
-				task.on("error", e => { this.error(e) });	
-				task.on("responded", e => { this.putHttpImages(JSON.parse(e.data)) });
+				//Si erreur on retourne à l'acceuil
+				task.on("error", e => { this.error(e) });
+				//si réponse, on ajoute la data  l'image en put
+				task.on("responded", e => { this.putHttpImages(JSON.parse(e.data, index)) });
 			});
 		},
 
-		putHttpImages(photo){
-			photo.longitude = 49.5;
-			photo.latitude = 49.5;
+		// Modifier la data d'une image en put
+		// params  :
+		// photo : objet JSON contenant la data a envoyer (sauf localisation)
+		// index : index de l'image dans le tableau de App.vue
+		putHttpImages(photo, index){
+			photo.longitude = this.$parent.$options.parent.images[0].location.longitude;
+			photo.latitude = this.$parent.$options.parent.images[0].location.latitude;
 			photo.serie = {
 				id: 2
 			}
@@ -110,29 +126,29 @@ export default {
 				}
 			}
 			axios.put(url+'photos/'+photo.id, photo, config).then(response => {
-    			console.log('done');
+    			this.success('Photos ajoutées à la série avec succès!');
   			}).catch(e => console.log(e));
 		},
 
+		//Envoyer les photos prisent vers espace user
 		sendToUser() {
             if (!this.user.pseudo || !this.user.password) {
                 this.alert(
                     "Merci d'entrer votre pseudo et votre mot de passe."
                 );
                 return;
-            }
-			
+            }	
+			//mettre en else
 			this.sendHttpImages('photos');
-			this.success('Photos ajoutées à la série avec succès!');
-			
-			
         },
 
+		//Envoyer les photos prisent vers la série selectionnée dans la liste des séries
 		sendToSerie() {
 			
 			this.success('Photos ajoutées à la série avec succès!');
         },
 
+		//Envoyer les photos prisent vers une nouvelle série
 		sendToNewSerie() {
             if (!this.new_serie_name) {
                 this.alert(
@@ -143,6 +159,9 @@ export default {
             this.success('Série créée avec succès!');
         },
 
+		//En cas de succès on reset les params de l'appli et on cache le composant
+		// Params :
+		// message : String à afficher en notif
 		success(message){
 			this.show_series = false;
 			this.show_login = false;
@@ -153,6 +172,9 @@ export default {
 			this.$parent.$options.parent.success_message = message;
 		},
 
+		//En cas d'erreur on reset les params de l'appli et on cache le composant
+		// Params :
+		// message : String à afficher en notif
 		error(message){
 			this.show_series = false;
 			this.show_login = false;
@@ -162,23 +184,25 @@ export default {
 			this.$parent.$options.parent.error_message = message;
 		},
 
+		//Recupère les noms des séries existantes
 		getSeries(){
 			axios.get(url + "series").then((response) => {
-				console.log(response.data._embedded.series[0]);
 				response.data._embedded.series.forEach(serie => {
 					this.series.push(serie.ville);
-				});
-				console.log(this.series)
-				
+				});				
 			}).catch((error) => {
 				console.log(error);
 			});
 		},
 
+		//Focus sur champ de texte
 		focusPassword() {
             this.$refs.password.nativeView.focus();
         },
 
+		//Affiche un message d'alerte
+		// Params : 
+		// message : message à afficher
         alert(message) {
             return alert({
                 title: "GeoQuizz",
