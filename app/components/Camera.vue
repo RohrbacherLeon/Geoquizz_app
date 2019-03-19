@@ -1,9 +1,6 @@
 <template>
         <StackLayout>
 			<Button class="btn" text="Prendre une photo" @tap="takePicture" />
-			<WrapLayout>
-				<Image v-for="img in images" v-bind:key="img" :src="img.src" width="75" height="75" />
-			</WrapLayout>
         </StackLayout>
 </template>
 
@@ -19,7 +16,7 @@ var geolocation = require("nativescript-geolocation");
 export default {
 	data() {
 		return {
-			images:[]
+			images: this.$parent.$options.parent.images
 		}
 	},
 	methods:{
@@ -50,15 +47,14 @@ export default {
 								console.log("Error: " + e.message);
 						});
 					}
-					console.log('fin');
 				})
 			});
 			
 		},
 		takePicture() {
-
+			this.$parent.$options.parent.error_message = '';
+			this.$parent.$options.parent.success_message = '';
 			this.getLocalisation().then(loc => {
-				
 				camera.requestPermissions()
 				.then(() => {
 					camera.takePicture({ width: 300, height: 300, keepAspectRatio: true, saveToGallery:false })
@@ -66,10 +62,7 @@ export default {
 						let img = new Image();
 						img.src = imageAsset;
 						img.location = loc;
-						this.images.push(img);
-						console.log(this.images);
-						
-						console.log(`ive got ${this.images.length} images now at location : ${img.location.latitude}, ${img.location.longitude}` );
+						this.$parent.$options.parent.images.push(img);
 					})
 					.catch(e => {
 						console.log('error:', e);
@@ -79,10 +72,7 @@ export default {
 					console.log('Error requesting permission');
 				});
 			})
-			
-			
-
-		}
+		},
 	}
 }
 </script>

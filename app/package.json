@@ -3,6 +3,6 @@
     "v8Flags": "--expose_gc"
   },
   "main": "main",
-  "name": "nativescript-vue-sidedrawer",
+  "name": "geoquizz",
   "version": "1.0.0"
 }

@@ -13,7 +13,7 @@
 				<StackLayout class="hr-light" />
 			</StackLayout>
 
-			<Button text="Log In" @tap="submit" class="btn btn-primary m-t-20" />
+			<Button text="Transférer" @tap="submit" class="btn btn-primary" />
 		</StackLayout>
 	</FlexboxLayout>
 </template>
@@ -27,15 +27,6 @@ const userService = {
     login(user) {
         return Promise.resolve(user);
     },
-};
-
-// A stub for the main page of your app. In a real app you’d put this page in its own .vue file.
-const HomePage = {
-    template: `
-<Page>
-	<Label class="m-20" textWrap="true" text="You have successfully authenticated. This is where you build your core application functionality."></Label>
-</Page>
-`
 };
 
 export default {
@@ -64,7 +55,6 @@ export default {
             userService
                 .login(this.user)
                 .then(() => {
-                    this.$navigateTo(HomePage);
                 })
                 .catch(() => {
                     this.alert("Impossible de vous authentifier.");
@@ -94,7 +84,6 @@ export default {
 	}
 
 	.form {
-		width: 60%;
 		flex-grow: 2;
 		vertical-align: middle;
 	}
