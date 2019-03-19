@@ -42,6 +42,7 @@ export default {
 			show_login: false,
 			show_new_serie: false,
 			new_serie_name: '',
+			is_loading: false,
 			user: {
                 pseudo: "",
                 password: "",
@@ -80,54 +81,54 @@ export default {
 		//Envoi des images prisent dans App.vue
 		// Params : 
 		// uri : chemin de la route ou poster les images
-		sendHttpImages(uri){
+		// index : index de l'image dans le tabelau de App.vue
+		// serie_id : id de la serie dans laquelle upload (0 si aucune)
+		sendHttpImages(uri, index, serie_id){
+			this.is_loading = true;
 
-			//On parcours les images prisent dans le parent
-			this.$parent.$options.parent.images.forEach((image, index) => {
-				// chemin local du fichier image
-				var file = image.src._android;
-				// upload configuration
-				var bghttp = require("nativescript-background-http");
-				var session = bghttp.session("image-upload");
-				var request = {
-					url: url+uri,
-					method: "POST",
-					headers: {
-						'Content-Type': 'multipart/octet-stream',
-					},
-					description: "Uploading "
-				};
-				// parametres d'envoi structurés
-				var params = [
-					{name:"file", filename: file, mimeType: 'image/jpeg'}
-				];
-				// task d'envoi selon config + params
-				var task = session.multipartUpload(params, request);
-				//Si erreur on retourne à l'acceuil
-				task.on("error", e => { this.error(e) });
-				//si réponse, on ajoute la data  l'image en put
-				task.on("responded", e => { this.putHttpImages(JSON.parse(e.data, index)) });
-			});
-		},
-
-		// Modifier la data d'une image en put
-		// params  :
-		// photo : objet JSON contenant la data a envoyer (sauf localisation)
-		// index : index de l'image dans le tableau de App.vue
-		putHttpImages(photo, index){
-			photo.longitude = this.$parent.$options.parent.images[0].location.longitude;
-			photo.latitude = this.$parent.$options.parent.images[0].location.latitude;
-			photo.serie = {
-				id: 2
-			}
-			let config = {
-				headers : {
-					'x-token': photo.token
+			// chemin local du fichier image
+			var file = this.$parent.$options.parent.images[index].src._android;
+			// upload configuration
+			var bghttp = require("nativescript-background-http");
+			var session = bghttp.session("image-upload");
+			var request = {
+				url: url+uri,
+				method: "POST",
+				headers: {
+					'Content-Type': 'multipart/octet-stream',
+				},
+				description: "Uploading "
+			};
+			// parametres d'envoi structurés
+			var params = [
+				{name:"file", filename: file, mimeType: 'image/jpeg'}
+			];
+			// task d'envoi selon config + params
+			var task = session.multipartUpload(params, request);
+			//Si erreur on retourne à l'acceuil
+			task.on("error", e => { this.error('Erreur POST ' + e); this.is_loading = false; });
+			//si réponse, on ajoute la data  l'image en put
+			task.on("responded", e => { 
+				let photo = JSON.parse(e.data);
+				photo.longitude = this.$parent.$options.parent.images[index].location.longitude;
+				photo.latitude = this.$parent.$options.parent.images[index].location.latitude;
+				photo.serie = {
+					id: serie_id
 				}
-			}
-			axios.put(url+'photos/'+photo.id, photo, config).then(response => {
-    			this.success('Photos ajoutées à la série avec succès!');
-  			}).catch(e => console.log(e));
+				let config = {
+					headers : {
+						'x-token': photo.token
+					}
+				}//vérifier l'uri
+				axios.put(url+uri+photo.id, photo, config).then(response => {
+					this.success('Photos ajoutées à la série avec succès!');
+					this.is_loading = false;
+				}).catch(e => {
+					console.log('Erreur PUT ' + e);
+					this.is_loading = false;
+				});
+			});
+			
 		},
 
 		//Envoyer les photos prisent vers espace user
@@ -138,14 +139,14 @@ export default {
                 );
                 return;
             }	
-			//mettre en else
-			this.sendHttpImages('photos');
         },
 
 		//Envoyer les photos prisent vers la série selectionnée dans la liste des séries
 		sendToSerie() {
-			
-			this.success('Photos ajoutées à la série avec succès!');
+			//On parcours les images prisent dans le parent
+			this.$parent.$options.parent.images.forEach((image, index) => {
+				this.sendHttpImages('photos/', index, 2);
+			});
         },
 
 		//Envoyer les photos prisent vers une nouvelle série
@@ -189,7 +190,8 @@ export default {
 			axios.get(url + "series").then((response) => {
 				response.data._embedded.series.forEach(serie => {
 					this.series.push(serie.ville);
-				});				
+				});
+				console.log(this.series)		
 			}).catch((error) => {
 				console.log(error);
 			});
