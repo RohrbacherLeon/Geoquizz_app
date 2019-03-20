@@ -12,7 +12,7 @@
 				</StackLayout>
 				<Camera v-show="!transfering" class='component'></Camera>
 				<WrapLayout v-show="!transfering">
-					<Image v-for="img in images" v-bind:key="img" :src="img.src" width="150" height="150" marginBottom="5"/>
+					<Image v-for="(img, index) in images" v-bind:key="index" :src="img.src" width="150" height="150" marginBottom="5"/>
 				</WrapLayout>
 				<Transfer v-show="transfering" class="component"></Transfer>
 			</FlexboxLayout>
@@ -47,8 +47,7 @@
 				this.transfering = !this.transfering;
 				this.success_message = '';
 				this.error_message = '';
-			}
-			else {
+			} else {
 				this.error_message = "Veuillez d'abord prendre une ou plusieurs photos.";
 			}
 		}
