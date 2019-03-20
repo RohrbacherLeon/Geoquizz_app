@@ -29,7 +29,6 @@ export default {
 				geolocation.isEnabled().then((isEnabled) => {
 					if (!isEnabled) {
 						geolocation.enableLocationRequest().then(() => {
-							console.log("demande");
 							
 						},(e) => {
 							console.log(e)
@@ -62,6 +61,7 @@ export default {
 						img.src = imageAsset;
 						img.location = loc;
 						this.$parent.$options.parent.images.push(img);
+						this.$parent.$options.parent.ui_set_description();
 					})
 					.catch(e => {
 						console.log('error:', e);
