@@ -23,24 +23,24 @@
 			<FlexboxLayout flexDirection="column" >
 				<TextField v-show="show_new_serie" class="input" hint="Nom de la série"  autocorrect="false" autocapitalizationType="none" v-model="new_serie_name" fontSize="18" />
 				<Button v-show="show_new_serie" text="Transférer" @tap="sendToNewSerie" class="btn btn-primary" />
-				<ListPicker v-show="show_series" :items="$parent.$options.parent.cities" v-model="selectedIndex" />
-				<Button v-show="show_series" text="Transférer" @tap="sendToSerie" class="btn btn-primary" />
+				<ListPicker v-if="show_series" :items="$parent.$options.parent.cities" v-model="selectedIndex" />
+				<Button v-if="show_series" text="Transférer" @tap="sendToSerie" class="btn btn-primary" />
 			</FlexboxLayout>
 		</StackLayout> 
 	</StackLayout>
 	<StackLayout v-else>
 		<Image src="~/assets/images/logo_small.png" class="loader" width="70" horizontalAlignment="center" verticalAlignment="center" />
-		<Label text="Chargement ..." horizontalAlignment="center" verticalAlignment="center" />
+		<Label text="Envoi en cours ..." horizontalAlignment="center"  verticalAlignment="center" />
 	</StackLayout>
 </template>
 
 <script>
-const url = "http://4c0df541.ngrok.io/";
 import axios from 'axios';
 
 export default {
 	data() {
 		return {
+			url: '',
 			series: [],
 			selectedIndex: 0,
             show_series: false,
@@ -54,6 +54,10 @@ export default {
                 password: ""
             }
 		}
+	},
+
+	mounted() {
+		this.url = this.$parent.$options.parent.url;
 	},
 
 	methods:{
@@ -86,14 +90,14 @@ export default {
 		// serie_id : id de la serie dans laquelle upload (0 si aucune)
 		sendHttpImages(uri, image, serie_id){
 			this.is_loading = true;
-
+			this.$parent.$options.parent.button_enable = false;
 			// chemin local du fichier image
 			var file = image.src._android;
 			// upload configuration
 			var bghttp = require("nativescript-background-http");
 			var session = bghttp.session("image-upload");
 			var request = {
-				url: url+uri,
+				url: this.url+uri,
 				method: "POST",
 				headers: {
 					'Content-Type': 'multipart/octet-stream',
@@ -125,12 +129,11 @@ export default {
 						'x-token': photo.token
 					}
 				}//vérifier l'uri
-				axios.put(url+uri+photo.id, photo, config).then(response => {
-					this.success('Photos ajoutées à la série avec succès!');
-					this.is_loading = false;
+				axios.put(this.url+uri+photo.id, photo, config).then(response => {
+					this.success('Photos ajoutées avec succès!');
+					
 				}).catch(e => {
-					console.log('Erreur PUT ' + e);
-					this.is_loading = false;
+					this.error('Erreur PUT ' + e);
 				});
 			});
 			
@@ -143,7 +146,7 @@ export default {
                 );
                 return;
             } else {
-				axios.post(url + "users/signin", this.user).then(response => {
+				axios.post(this.url + "users/signin", this.user).then(response => {
 					this.user.id = response.data.id;
 					delete this.user.password;
 					this.$parent.$options.parent.images.forEach((image) => {
@@ -156,6 +159,7 @@ export default {
 		//Envoyer les photos prisent vers la série selectionnée dans la liste des séries
 		// dans App.vue
 		sendToSerie() {
+			console.log('res');
 			//On parcours les images prisent dans le parent
 			this.$parent.$options.parent.images.forEach((image) => {
 				let id_serie = this.$parent.$options.parent.getSerieIndex(this.selectedIndex);
@@ -164,6 +168,7 @@ export default {
         },
 		//Envoyer les photos prisent vers une nouvelle série
 		sendToNewSerie() {
+			console.log('new');
             if (!this.new_serie_name) {
                 this.alert(
                     "Merci d'entrer le nom de votre série."
@@ -176,13 +181,12 @@ export default {
 					map_long : images[0].location.longitude,
 					map_lat : images[0].location.longitude
 				}
-				axios.post(url + "series", serie).then(response =>{
+				axios.post(this.url + "series", serie).then(response =>{
 					images.forEach(img => {
 						this.sendHttpImages("photos/", img, response.data.id);
 					});
 				});
 			}
-            this.success('Série créée avec succès!');
         },
 		//En cas de succès on reset les params de l'appli et on cache le composant
 		// Params :
@@ -192,6 +196,8 @@ export default {
 			this.show_login = false;
 			this.show_new_serie = false;
 			this.new_serie_name = '';
+			this.is_loading = false;
+			this.$parent.$options.parent.button_enable = true;
 			this.$parent.$options.parent.reset_images();
 			this.$parent.$options.parent.transfering = false;
 			this.$parent.$options.parent.success_message = message;
@@ -204,6 +210,8 @@ export default {
 			this.show_login = false;
 			this.show_new_serie = false;
 			this.new_serie_name = '';
+			this.is_loading = false;
+			this.$parent.$options.parent.button_enable = true;
 			this.$parent.$options.parent.transfering = false;
 			this.$parent.$options.parent.error_message = message;
 		},
@@ -245,7 +253,8 @@ export default {
 	}
 
 	.loader {
-		margin: 100;
+		margin-top: 100;
+		margin-bottom: 15;
 	}
 
 	.form {
