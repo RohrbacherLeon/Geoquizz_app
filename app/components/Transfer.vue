@@ -23,13 +23,14 @@
 			<FlexboxLayout flexDirection="column" >
 				<TextField v-show="show_new_serie" class="input" hint="Nom de la série"  autocorrect="false" autocapitalizationType="none" v-model="new_serie_name" fontSize="18" />
 				<Button v-show="show_new_serie" text="Transférer" @tap="sendToNewSerie" class="btn btn-primary" />
-				<ListPicker v-show="show_series" :items="series" />
+				<ListPicker v-show="show_series" :items="$parent.$options.parent.cities" v-model="selectedIndex" />
 				<Button v-show="show_series" text="Transférer" @tap="sendToSerie" class="btn btn-primary" />
 			</FlexboxLayout>
 		</StackLayout> 
 	</StackLayout>
 	<StackLayout v-else>
-		<Image src="~/assets/images/Logo_small.png" class="loader" width="70" verticalAlignment="center"/>
+		<Image src="~/assets/images/logo_small.png" class="loader" width="70" horizontalAlignment="center" verticalAlignment="center" />
+		<Label text="Chargement ..." horizontalAlignment="center" verticalAlignment="center" />
 	</StackLayout>
 </template>
 
@@ -41,6 +42,7 @@ export default {
 	data() {
 		return {
 			series: [],
+			selectedIndex: 0,
             show_series: false,
 			show_login: false,
 			show_new_serie: false,
@@ -53,11 +55,6 @@ export default {
             }
 		}
 	},
-
-	mounted() {
-		this.getSeries();
-	},
-	
 
 	methods:{
 		//Afficher / Cacher formulaire login
@@ -119,6 +116,7 @@ export default {
 				photo.serie = {
 					id: serie_id
 				}
+				photo.description = image.description;
 				if(image.user){
 					photo.user = this.user;
 				}
@@ -156,10 +154,12 @@ export default {
 			}
         },
 		//Envoyer les photos prisent vers la série selectionnée dans la liste des séries
+		// dans App.vue
 		sendToSerie() {
 			//On parcours les images prisent dans le parent
 			this.$parent.$options.parent.images.forEach((image) => {
-				this.sendHttpImages('photos/', image, 2);
+				let id_serie = this.$parent.$options.parent.getSerieIndex(this.selectedIndex);
+				this.sendHttpImages('photos/', image, id_serie);
 			});
         },
 		//Envoyer les photos prisent vers une nouvelle série
@@ -207,17 +207,6 @@ export default {
 			this.$parent.$options.parent.transfering = false;
 			this.$parent.$options.parent.error_message = message;
 		},
-		//Recupère les noms des séries existantes
-		getSeries(){
-			axios.get(url + "series").then((response) => {
-				response.data._embedded.series.forEach(serie => {
-					this.series.push(serie.ville);
-				});
-				console.log(this.series)		
-			}).catch((error) => {
-				console.log(error);
-			});
-		},
 		//Focus sur champ de texte
 		focusPassword() {
             this.$refs.password.nativeView.focus();
@@ -237,6 +226,14 @@ export default {
 </script>
 
 <style scoped>
+
+	.btn {
+		margin-top: 5%;
+		width: 75%;
+		background-color: #e2574c;
+		color: white;
+	}
+
 	.btn-primary {
 		height: 50;
 		margin: 30 5 15 5;
@@ -247,18 +244,13 @@ export default {
 		font-weight: 600;
 	}
 
+	.loader {
+		margin: 100;
+	}
+
 	.form {
 		flex-grow: 2;
 		vertical-align: middle;
-	}
-
-	.loader {
-		margin-top: 100;
-		animation: fadeIn 1s infinite alternate;
-	}
-
-	@keyframes fadeIn { 
-  		from { opacity: 0; } 
 	}
 
 	.input-field {

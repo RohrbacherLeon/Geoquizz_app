@@ -1,7 +1,7 @@
 <template>
 	<Page>
 		<ActionBar>
-				<Image src="~/assets/images/Logo_small.png"  width="70" class="logo"/>
+				<Image src="~/assets/images/logo.png"  width="70" class="logo"/>
 		</ActionBar>
 		<ScrollView orientation="vertical">
 			<FlexboxLayout class="page">
@@ -17,13 +17,13 @@
 					<TextField class="input" hint="Description"  autocorrect="false" autocapitalizationType="none" v-model="new_photo_description" fontSize="18" />
 					<Button text="Ajouter" @tap="add_description" class="btn btn-primary" />
 				</StackLayout>
-				
-				<Camera v-show="!transfering" class='component'></Camera>
-				<WrapLayout v-show="!transfering">
+
+				<Camera v-show="!transfering && !adding_picture" class='component'></Camera>
+				<WrapLayout v-show="!transfering  && !adding_picture">
 					<Image v-for="(img, index) in images" v-bind:key="index" :src="img.src" width="150" height="150" marginBottom="5"/>
 				</WrapLayout>
 
-				<Transfer v-show="transfering" class="component"></Transfer>
+				<Transfer v-if="transfering" class="component"></Transfer>
 			</FlexboxLayout>
 		</ScrollView>
 	</Page>
@@ -33,6 +33,8 @@
   	import Camera from "./Camera.vue"
 	import Transfer from "./Transfer.vue"
 	import { Image } from "tns-core-modules/ui/image";
+	const url = "http://4c0df541.ngrok.io/";
+	import axios from 'axios';
 
   	export default {
 	data() {
@@ -40,12 +42,20 @@
 			transfering: false,
 			adding_picture: false,
 			images : [],
+			series: [],
+			cities: [],
 			new_photo_description: '',
 			success_message: '',
 			error_message:''
 		}
 	},
 	components:{Camera, Transfer},
+
+	
+	mounted() {
+		this.getSeries();
+	},
+	
 	methods:{
 		page(){
 			this.$refs.drawer.nativeView.closeDrawer();
@@ -64,13 +74,49 @@
 		},
 
 		add_description(index) {
-			this.images[(this.images.length-1)].description = this.new_photo_description;
-			this.new_photo_description = '';
-			this.adding_picture = !this.adding_picture;
+			if (!this.new_photo_description) {
+                this.alert(
+                    "Merci d'entrer une description pour votre photo."
+                );
+                return;
+            } else {
+				this.images[(this.images.length-1)].description = this.new_photo_description;
+				this.new_photo_description = '';
+				this.adding_picture = !this.adding_picture;
+			}
 		},
 
 		ui_set_description(){
 			this.adding_picture = !this.adding_picture;
+		},
+
+		//Affiche un message d'alerte
+		// Params : 
+		// message : message à afficher
+        alert(message) {
+            return alert({
+                title: "GeoQuizz",
+                okButtonText: "OK",
+                message: message
+            });
+        },
+
+		//Recupère les noms des séries existantes
+		getSeries(){
+			axios.get(url + "series").then((response) => {
+				response.data._embedded.series.forEach(serie => {
+					if(serie.id != 0) {
+						this.series.push(serie);
+						this.cities.push(serie.ville);
+					}
+				});
+			}).catch((error) => {
+				console.log(error);
+			});
+		},
+
+		getSerieIndex(index){
+			return this.series[index].id;
 		}
 
 	}
@@ -112,11 +158,6 @@
 
 	.component {
 		width: 75%;
-	}
-
-	.logo {
-		margin-top: 10px;
-
 	}
 
 	.title {
