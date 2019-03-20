@@ -17,10 +17,10 @@
 					<TextField class="input" hint="Description"  autocorrect="false" autocapitalizationType="none" v-model="new_photo_description" fontSize="18" />
 					<Button text="Ajouter" @tap="add_description" class="btn btn-primary" />
 				</StackLayout>
-
-				<Camera v-show="!transfering && !adding_picture" class='component'></Camera>
-				<WrapLayout v-show="!transfering  && !adding_picture">
-					<Image v-for="img in images" v-bind:key="img" :src="img.src" width="150" height="150" marginBottom="5"/>
+				
+				<Camera v-show="!transfering" class='component'></Camera>
+				<WrapLayout v-show="!transfering">
+					<Image v-for="(img, index) in images" v-bind:key="index" :src="img.src" width="150" height="150" marginBottom="5"/>
 				</WrapLayout>
 
 				<Transfer v-show="transfering" class="component"></Transfer>
@@ -58,8 +58,7 @@
 				this.transfering = !this.transfering;
 				this.success_message = '';
 				this.error_message = '';
-			}
-			else {
+			} else {
 				this.error_message = "Veuillez d'abord prendre une ou plusieurs photos.";
 			}
 		},

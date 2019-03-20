@@ -10,8 +10,7 @@ import * as imagepicker from "nativescript-imagepicker";
 
 import { Image } from "tns-core-modules/ui/image";
 
-//avec import ça marche pas
-var geolocation = require("nativescript-geolocation");
+const geolocation = require("nativescript-geolocation");
 
 export default {
 	data() {
