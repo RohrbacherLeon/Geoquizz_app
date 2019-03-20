@@ -7,13 +7,22 @@
 			<FlexboxLayout class="page">
 				<Label :text="error_message" />
 				<Label :text="success_message" />
-				<StackLayout class="full-width">
+
+				<StackLayout v-show="!adding_picture" class="full-width">
 					<Button class="btn" :text="transfering ? 'Retour au photos ' : 'Transférer mes photos'" @tap="toggleTransfer" />
 				</StackLayout>
-				<Camera v-show="!transfering" class='component'></Camera>
-				<WrapLayout v-show="!transfering">
+
+				<StackLayout v-show="adding_picture" class="full-width">
+					<Label text="Veuillez entrer la description de votre photo" />
+					<TextField class="input" hint="Description"  autocorrect="false" autocapitalizationType="none" v-model="new_photo_description" fontSize="18" />
+					<Button text="Ajouter" @tap="add_description" class="btn btn-primary" />
+				</StackLayout>
+
+				<Camera v-show="!transfering && !adding_picture" class='component'></Camera>
+				<WrapLayout v-show="!transfering  && !adding_picture">
 					<Image v-for="img in images" v-bind:key="img" :src="img.src" width="150" height="150" marginBottom="5"/>
 				</WrapLayout>
+
 				<Transfer v-show="transfering" class="component"></Transfer>
 			</FlexboxLayout>
 		</ScrollView>
@@ -29,7 +38,9 @@
 	data() {
 		return {
 			transfering: false,
+			adding_picture: false,
 			images : [],
+			new_photo_description: '',
 			success_message: '',
 			error_message:''
 		}
@@ -51,7 +62,18 @@
 			else {
 				this.error_message = "Veuillez d'abord prendre une ou plusieurs photos.";
 			}
+		},
+
+		add_description(index) {
+			this.images[(this.images.length-1)].description = this.new_photo_description;
+			this.new_photo_description = '';
+			this.adding_picture = !this.adding_picture;
+		},
+
+		ui_set_description(){
+			this.adding_picture = !this.adding_picture;
 		}
+
 	}
   }
 </script>
@@ -77,6 +99,16 @@
 		width: 75%;
 		background-color: #e2574c;
 		color: white;
+	}
+
+	.btn-primary {
+		height: 50;
+		margin: 30 5 15 5;
+		background-color: #e2574c;
+		color: white;
+		border-radius: 5;
+		font-size: 20;
+		font-weight: 600;
 	}
 
 	.component {

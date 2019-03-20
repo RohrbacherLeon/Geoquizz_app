@@ -1,5 +1,5 @@
 <template>
-	<StackLayout>
+	<StackLayout v-if="!is_loading">
 		<Label text="Envoyer vos photos vers :"/>
 		<Button text="Espace utilisateur" @tap="toggleShowLogin" />
 		<StackLayout v-show="show_login" class="form">
@@ -21,12 +21,15 @@
 		<Button text="Serie existante" @tap="toggleShowSeries" />
 		<StackLayout>
 			<FlexboxLayout flexDirection="column" >
-				<TextField v-show="show_new_serie" class="input" hint="Nom nouvelle série"  autocorrect="false" autocapitalizationType="none" v-model="this.new_serie_name" fontSize="18" />
+				<TextField v-show="show_new_serie" class="input" hint="Nom nouvelle série"  autocorrect="false" autocapitalizationType="none" v-model="new_serie_name" fontSize="18" />
 				<Button v-show="show_new_serie" text="Transférer" @tap="sendToNewSerie" class="btn btn-primary" />
 				<ListPicker v-show="show_series" :items="series" />
 				<Button v-show="show_series" text="Transférer" @tap="sendToSerie" class="btn btn-primary" />
 			</FlexboxLayout>
 		</StackLayout> 
+	</StackLayout>
+	<StackLayout v-else>
+		<Image src="~/assets/images/Logo_small.png" class="loader" width="70" verticalAlignment="center"/>
 	</StackLayout>
 </template>
 
@@ -232,9 +235,13 @@ export default {
 		vertical-align: middle;
 	}
 
-	.logo {
-		margin-bottom: 12;
-		font-weight: bold;
+	.loader {
+		margin-top: 100;
+		animation: fadeIn 1s infinite alternate;
+	}
+
+	@keyframes fadeIn { 
+  		from { opacity: 0; } 
 	}
 
 	.input-field {
