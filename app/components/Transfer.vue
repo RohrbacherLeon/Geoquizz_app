@@ -159,7 +159,6 @@ export default {
 		//Envoyer les photos prisent vers la série selectionnée dans la liste des séries
 		// dans App.vue
 		sendToSerie() {
-			console.log('res');
 			//On parcours les images prisent dans le parent
 			this.$parent.$options.parent.images.forEach((image) => {
 				let id_serie = this.$parent.$options.parent.getSerieIndex(this.selectedIndex);
@@ -168,7 +167,6 @@ export default {
         },
 		//Envoyer les photos prisent vers une nouvelle série
 		sendToNewSerie() {
-			console.log('new');
             if (!this.new_serie_name) {
                 this.alert(
                     "Merci d'entrer le nom de votre série."

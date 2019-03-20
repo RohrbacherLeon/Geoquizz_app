@@ -29,7 +29,6 @@ export default {
 				geolocation.isEnabled().then((isEnabled) => {
 					if (!isEnabled) {
 						geolocation.enableLocationRequest().then(() => {
-							console.log("demande");
 							
 						},(e) => {
 							console.log(e)

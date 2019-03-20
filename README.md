@@ -17,6 +17,13 @@ Enfin, lancez la commande :
 * Pour Android : ```tns run android --bundle```
 * Pour IOS : ```tns run ios --bundle```
 
+## Changement de l'URL de l'API
+
+L'URL de l'API est definie par une constante dans le fichier "App.vue", c'est une propiétée dans data ```url``` de la vue (Ligne 41)
+Exemple d'URL :
+-"http://xxxxxx.ngrok.io/" si le container est lancé via Ngrok.io
+
+
 ## Tester l'application
 Pour pouvoir tester l'application, un compte utilisateur est fourni avec les credentials suivantes :
 * Login : toto
