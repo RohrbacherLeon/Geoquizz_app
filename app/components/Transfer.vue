@@ -4,7 +4,7 @@
 		<Button text="Espace utilisateur" @tap="toggleShowLogin" />
 		<StackLayout v-show="show_login" class="form">
 			<StackLayout class="input-field" marginBottom="25">
-				<TextField class="input" hint="Pseudo"  autocorrect="false" autocapitalizationType="none" v-model="user.pseudo"
+				<TextField class="input" hint="Pseudo"  autocorrect="false" autocapitalizationType="none" v-model="user.login"
 					returnKeyType="next" @returnPress="focusPassword" fontSize="18" />
 				<StackLayout class="hr-light" />
 			</StackLayout>
@@ -21,7 +21,7 @@
 		<Button text="Serie existante" @tap="toggleShowSeries" />
 		<StackLayout>
 			<FlexboxLayout flexDirection="column" >
-				<TextField v-show="show_new_serie" class="input" hint="Nom nouvelle série"  autocorrect="false" autocapitalizationType="none" v-model="this.new_serie_name" fontSize="18" />
+				<TextField v-show="show_new_serie" class="input" hint="Nom de la série"  autocorrect="false" autocapitalizationType="none" v-model="new_serie_name" fontSize="18" />
 				<Button v-show="show_new_serie" text="Transférer" @tap="sendToNewSerie" class="btn btn-primary" />
 				<ListPicker v-show="show_series" :items="series" />
 				<Button v-show="show_series" text="Transférer" @tap="sendToSerie" class="btn btn-primary" />
@@ -44,8 +44,9 @@ export default {
 			new_serie_name: '',
 			is_loading: false,
 			user: {
-                pseudo: "",
-                password: "",
+				id: "",
+                login: "",
+                password: ""
             }
 		}
 	},
@@ -83,11 +84,11 @@ export default {
 		// uri : chemin de la route ou poster les images
 		// index : index de l'image dans le tabelau de App.vue
 		// serie_id : id de la serie dans laquelle upload (0 si aucune)
-		sendHttpImages(uri, index, serie_id){
+		sendHttpImages(uri, image, serie_id){
 			this.is_loading = true;
 
 			// chemin local du fichier image
-			var file = this.$parent.$options.parent.images[index].src._android;
+			var file = image.src._android;
 			// upload configuration
 			var bghttp = require("nativescript-background-http");
 			var session = bghttp.session("image-upload");
@@ -110,10 +111,13 @@ export default {
 			//si réponse, on ajoute la data  l'image en put
 			task.on("responded", e => { 
 				let photo = JSON.parse(e.data);
-				photo.longitude = this.$parent.$options.parent.images[index].location.longitude;
-				photo.latitude = this.$parent.$options.parent.images[index].location.latitude;
+				photo.longitude = image.location.longitude;
+				photo.latitude = image.location.latitude;
 				photo.serie = {
 					id: serie_id
+				}
+				if(image.user){
+					photo.user = this.user;
 				}
 				let config = {
 					headers : {
@@ -130,25 +134,31 @@ export default {
 			});
 			
 		},
-
 		//Envoyer les photos prisent vers espace user
 		sendToUser() {
-            if (!this.user.pseudo || !this.user.password) {
+            if (!this.user.login || !this.user.password) {
                 this.alert(
                     "Merci d'entrer votre pseudo et votre mot de passe."
                 );
                 return;
-            }	
+            } else {
+				axios.post(url + "users/signin", this.user).then(response => {
+					this.user.id = response.data.id;
+					delete this.user.password;
+					this.$parent.$options.parent.images.forEach((image) => {
+						image.user = this.user;
+						this.sendHttpImages('photos/', image, 0);
+					});
+				});
+			}
         },
-
 		//Envoyer les photos prisent vers la série selectionnée dans la liste des séries
 		sendToSerie() {
 			//On parcours les images prisent dans le parent
-			this.$parent.$options.parent.images.forEach((image, index) => {
-				this.sendHttpImages('photos/', index, 2);
+			this.$parent.$options.parent.images.forEach((image) => {
+				this.sendHttpImages('photos/', image, 2);
 			});
         },
-
 		//Envoyer les photos prisent vers une nouvelle série
 		sendToNewSerie() {
             if (!this.new_serie_name) {
@@ -156,10 +166,21 @@ export default {
                     "Merci d'entrer le nom de votre série."
                 );
                 return;
-            }
+            } else {
+				let images = this.$parent.$options.parent.images;
+				let serie = {
+					ville : this.new_serie_name,
+					map_long : images[0].location.longitude,
+					map_lat : images[0].location.longitude
+				}
+				axios.post(url + "series", serie).then(response =>{
+					images.forEach(img => {
+						this.sendHttpImages("photos/", img, response.data.id);
+					});
+				});
+			}
             this.success('Série créée avec succès!');
         },
-
 		//En cas de succès on reset les params de l'appli et on cache le composant
 		// Params :
 		// message : String à afficher en notif
@@ -172,7 +193,6 @@ export default {
 			this.$parent.$options.parent.transfering = false;
 			this.$parent.$options.parent.success_message = message;
 		},
-
 		//En cas d'erreur on reset les params de l'appli et on cache le composant
 		// Params :
 		// message : String à afficher en notif
@@ -184,7 +204,6 @@ export default {
 			this.$parent.$options.parent.transfering = false;
 			this.$parent.$options.parent.error_message = message;
 		},
-
 		//Recupère les noms des séries existantes
 		getSeries(){
 			axios.get(url + "series").then((response) => {
@@ -196,12 +215,10 @@ export default {
 				console.log(error);
 			});
 		},
-
 		//Focus sur champ de texte
 		focusPassword() {
             this.$refs.password.nativeView.focus();
         },
-
 		//Affiche un message d'alerte
 		// Params : 
 		// message : message à afficher
